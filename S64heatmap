@@ -1,0 +1,40 @@
+#!/bin/sh
+
+# Quick start-stop-daemon example, derived from Debian /etc/init.d/ssh
+set -e
+
+# Must be a valid filename
+NAME=heatmap
+PIDFILE=/var/run/$NAME.pid
+#This is the command to be run, give the full pathname
+DAEMON=/var/listen_vrs.py
+DAEMON_OPTS="-s 3600 /tmp/VirtualRadarConfig/WebMod/heatmap.js"
+
+export PATH="${PATH:+$PATH:}/usr/sbin:/sbin"
+
+case "$1" in
+  start)
+        echo -n "Starting daemon: "$NAME
+        start-stop-daemon --start --quiet --make-pidfile --pidfile $PIDFILE --background \
+            --startas /bin/sh -- -c "exec $DAEMON $DAEMON_OPTS > /var/log/$NAME.log 2>&1"
+        echo "."
+	;;
+  stop)
+        echo -n "Stopping daemon: "$NAME
+	start-stop-daemon --stop --quiet --oknodo --pidfile $PIDFILE
+        echo "."
+	;;
+  restart)
+        echo -n "Restarting daemon: "$NAME
+	start-stop-daemon --stop --quiet --oknodo --retry 30 --pidfile $PIDFILE
+        start-stop-daemon --start --quiet --make-pidfile --pidfile $PIDFILE --background \
+            --startas /bin/sh -- -c "exec $DAEMON $DAEMON_OPTS > /var/log/$NAME.log 2>&1"
+	echo "."
+	;;
+
+  *)
+	echo "Usage: "$1" {start|stop|restart}"
+	exit 1
+esac
+
+exit 0
